@@ -24,8 +24,9 @@ export default function ArticleList() {
         <div key={article.article_id}>
           <img src={article.article_img_url} alt={article.title} />
           <h3>{article.title}</h3>
-          <span>{article.topic}</span>
-          <span>{article.author}</span>
+          <span>Topic: {article.topic}</span>
+          <br />
+          <span>Author: {article.author}</span>
         </div>
       ))}
     </div>

@@ -1,9 +1,8 @@
 import "./App.css";
-import { Routes, Route } from "react-router";
-import Footer from "./Footer";
-import Header from "./Header";
-import Home from "./Home";
-import Articles from "./ArticleList";
+import { Routes, Route } from "react-router-dom";
+import Header from "./components/Header";
+import ArticleList from "./components/ArticleList";
+import Home from "./components/Home";
 import { useState } from "react";
 
 function App() {
@@ -13,13 +12,12 @@ function App() {
     <>
       <Header />
       <Routes>
-        <Route path="/" element={<Home user={user} setUser={setUser} />} />
         <Route
-          path="/articles/:article_id"
-          element={<ArticleList user={user} />}
+          path="/"
+          element={<Home user={user} setUser={setUser} />}
         ></Route>
+        <Route path="/articles" element={<ArticleList user={user} />}></Route>
       </Routes>
-      <Footer />
     </>
   );
 }
