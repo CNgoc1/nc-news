@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import ArticleList from "./components/ArticleList";
 import Home from "./components/Home";
+import ArticlePage from "./components/ArticlePage";
 import { useState } from "react";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           element={<Home user={user} setUser={setUser} />}
         ></Route>
         <Route path="/articles" element={<ArticleList user={user} />}></Route>
+        <Route path="/articles/:article_id" element={<ArticlePage />} />
       </Routes>
     </>
   );
