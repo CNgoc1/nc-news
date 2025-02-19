@@ -9,6 +9,9 @@ export default function ArticlePage() {
   const [votes, setVotes] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
   const [error, setError] = useState(null);
+  const [newComment, setNewComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [comments, setComments] = useState([]);
 
   useEffect(() => {
     api("GET", `/router/articles/${article_id}`)
@@ -60,6 +63,36 @@ export default function ArticlePage() {
     }
   }
 
+  function handleCommentSubmit(event) {
+    event.preventDefault();
+    if (newComment.lenth === 0) return;
+
+    setSubmitting(true);
+    setError(null);
+    setComments((prev) => [
+      { author: "Current User", body: newComment },
+      ...prev,
+    ]);
+
+    api("POST", `/router/articles/${article_id}/comments`, null, {
+      body: newComment,
+      username: "Current User",
+    })
+      .then(
+        (res) =>
+          res?.data?.comment &&
+          setComments((prev) => [res.data.comment, ...prev.slice(1)])
+      )
+      .catch(() => {
+        setError("Failed to post comment. Please try again.");
+        setComments((prev) => prev.slice(1));
+      })
+      .finally(() => {
+        setSubmitting(false);
+        setNewComment("");
+      });
+  }
+
   return (
     <div>
       <h2>{article.title}</h2>
@@ -72,6 +105,29 @@ export default function ArticlePage() {
         <p>Votes: {votes}</p>
         <button onClick={() => handleVote(1)}>Upvote</button>
         <button onClick={() => handleVote(-1)}>Downvote</button>
+      </div>
+
+      <div>
+        <h3>Comments</h3>
+        <form onSubmit={handleCommentSubmit}>
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write a comment..."
+            required
+          />
+          <button type="submit">
+            {submitting ? "Posting..." : "Post Comment"}
+          </button>
+        </form>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <ul>
+          {comments.map((comment, index) => (
+            <li key={index}>
+              {comment.author}: {comment.body}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
