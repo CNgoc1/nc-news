@@ -65,7 +65,7 @@ export default function ArticlePage() {
 
   function handleCommentSubmit(event) {
     event.preventDefault();
-    if (newComment.lenth === 0) return;
+    if (newComment.length === 0) return;
 
     setSubmitting(true);
     setError(null);
@@ -93,12 +93,23 @@ export default function ArticlePage() {
       });
   }
 
+  function handleDeleteComment(comment_id) {
+    setComments((prev) =>
+      prev.filter((comment) => comment.comment_id !== comment_id)
+    );
+
+    api("DELETE", `/router/comments/${comment_id}`).catch(() => {
+      setError("Failed to delete comment. Please try again.");
+    });
+  }
+
   return (
-    <div>
+    <section>
       <h2>{article.title}</h2>
       <img src={article.article_img_url} alt={article.title} />
       <p>Topic: {article.topic}</p>
       <p>Author: {article.author}</p>
+      <p>Date: {article.created_at}</p>
       <p>{article.body}</p>
 
       <div>
@@ -123,12 +134,17 @@ export default function ArticlePage() {
         {error && <p style={{ color: "red" }}>{error}</p>}
         <ul>
           {comments.map((comment, index) => (
-            <li key={index}>
+            <li key={comment.comment_id}>
               {comment.author}: {comment.body}
+              {comment.author === "Current User" && (
+                <button onClick={() => handleDeleteComment(comment.comment_id)}>
+                  Delete
+                </button>
+              )}
             </li>
           ))}
         </ul>
       </div>
-    </div>
+    </section>
   );
 }
