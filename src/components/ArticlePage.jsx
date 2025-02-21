@@ -9,6 +9,9 @@ export default function ArticlePage() {
   const [votes, setVotes] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
   const [error, setError] = useState(null);
+  const [newComment, setNewComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [comments, setComments] = useState([]);
 
   useEffect(() => {
     api("GET", `/router/articles/${article_id}`)
@@ -60,12 +63,53 @@ export default function ArticlePage() {
     }
   }
 
+  function handleCommentSubmit(event) {
+    event.preventDefault();
+    if (newComment.length === 0) return;
+
+    setSubmitting(true);
+    setError(null);
+    setComments((prev) => [
+      { author: "Current User", body: newComment },
+      ...prev,
+    ]);
+
+    api("POST", `/router/articles/${article_id}/comments`, null, {
+      body: newComment,
+      username: "Current User",
+    })
+      .then(
+        (res) =>
+          res?.data?.comment &&
+          setComments((prev) => [res.data.comment, ...prev.slice(1)])
+      )
+      .catch(() => {
+        setError("Failed to post comment. Please try again.");
+        setComments((prev) => prev.slice(1));
+      })
+      .finally(() => {
+        setSubmitting(false);
+        setNewComment("");
+      });
+  }
+
+  function handleDeleteComment(comment_id) {
+    setComments((prev) =>
+      prev.filter((comment) => comment.comment_id !== comment_id)
+    );
+
+    api("DELETE", `/router/comments/${comment_id}`).catch(() => {
+      setError("Failed to delete comment. Please try again.");
+    });
+  }
+
   return (
-    <div>
+    <section>
       <h2>{article.title}</h2>
       <img src={article.article_img_url} alt={article.title} />
       <p>Topic: {article.topic}</p>
       <p>Author: {article.author}</p>
+      <p>Date: {article.created_at}</p>
       <p>{article.body}</p>
 
       <div>
@@ -73,6 +117,34 @@ export default function ArticlePage() {
         <button onClick={() => handleVote(1)}>Upvote</button>
         <button onClick={() => handleVote(-1)}>Downvote</button>
       </div>
-    </div>
+
+      <div>
+        <h3>Comments</h3>
+        <form onSubmit={handleCommentSubmit}>
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write a comment..."
+            required
+          />
+          <button type="submit">
+            {submitting ? "Posting..." : "Post Comment"}
+          </button>
+        </form>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <ul>
+          {comments.map((comment, index) => (
+            <li key={comment.comment_id}>
+              {comment.author}: {comment.body}
+              {comment.author === "Current User" && (
+                <button onClick={() => handleDeleteComment(comment.comment_id)}>
+                  Delete
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
